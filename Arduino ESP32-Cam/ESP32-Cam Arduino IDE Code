@@ -1,0 +1,110 @@
+#include "esp_camera.h"
+#include "HardwareSerial.h"
+
+// ESP32-CAM AI-Thinker module pin definitions (FIXED - don't change these)
+#define PWDN_GPIO_NUM     32
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM      0
+#define SIOD_GPIO_NUM     26
+#define SIOC_GPIO_NUM     27
+#define Y9_GPIO_NUM       35
+#define Y8_GPIO_NUM       34
+#define Y7_GPIO_NUM       39
+#define Y6_GPIO_NUM       36
+#define Y5_GPIO_NUM       21
+#define Y4_GPIO_NUM       19
+#define Y3_GPIO_NUM       18
+#define Y2_GPIO_NUM        5
+#define VSYNC_GPIO_NUM    25
+#define HREF_GPIO_NUM     23
+#define PCLK_GPIO_NUM     22
+
+// UART configuration for STM32 communication
+#define BAUDRATE 115200
+#define FRAME_DELAY_MS 1000
+
+void setup() {
+  Serial.begin(BAUDRATE);
+  
+  camera_config_t config;
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer = LEDC_TIMER_0;
+  config.pin_d0 = Y2_GPIO_NUM;
+  config.pin_d1 = Y3_GPIO_NUM;
+  config.pin_d2 = Y4_GPIO_NUM;
+  config.pin_d3 = Y5_GPIO_NUM;
+  config.pin_d4 = Y6_GPIO_NUM;
+  config.pin_d5 = Y7_GPIO_NUM;
+  config.pin_d6 = Y8_GPIO_NUM;
+  config.pin_d7 = Y9_GPIO_NUM;
+  config.pin_xclk = XCLK_GPIO_NUM;
+  config.pin_pclk = PCLK_GPIO_NUM;
+  config.pin_vsync = VSYNC_GPIO_NUM;
+  config.pin_href = HREF_GPIO_NUM;
+  config.pin_sscb_sda = SIOD_GPIO_NUM;
+  config.pin_sscb_scl = SIOC_GPIO_NUM;
+  config.pin_pwdn = PWDN_GPIO_NUM;
+  config.pin_reset = RESET_GPIO_NUM;
+  config.xclk_freq_hz = 20000000;
+  config.pixel_format = PIXFORMAT_JPEG;
+  
+  // Adjust based on available PSRAM
+  if(psramFound()){
+    config.frame_size = FRAMESIZE_VGA;  // 640x480
+    config.jpeg_quality = 12;
+    config.fb_count = 2;
+    Serial.println("PSRAM found - VGA mode");
+  } else {
+    config.frame_size = FRAMESIZE_SVGA; // 800x600
+    config.jpeg_quality = 12;
+    config.fb_count = 1;
+    Serial.println("No PSRAM - SVGA mode");
+  }
+  
+  // Initialize camera
+  esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    Serial.println("Camera init failed");
+    return;
+  }
+  
+  Serial.println("ESP32-CAM ready - streaming to STM32");
+}
+
+void loop() {
+  // Capture frame
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (!fb) {
+    Serial.println("Capture failed");
+    delay(FRAME_DELAY_MS);
+    return;
+  }
+  
+  // Send to STM32 via UART
+  sendFrameToSTM32(fb->buf, fb->len);
+  
+  // Return frame buffer
+  esp_camera_fb_return(fb);
+  
+  Serial.print("Sent frame: ");
+  Serial.print(fb->len);
+  Serial.println(" bytes");
+  
+  delay(FRAME_DELAY_MS);
+}
+
+void sendFrameToSTM32(uint8_t* buffer, size_t length) {
+  // Frame protocol: [0xAA][0xBB][LEN_HIGH][LEN_LOW][JPEG_DATA][0xCC][0xDD]
+  uint8_t header[4];
+  header[0] = 0xAA;
+  header[1] = 0xBB;
+  header[2] = (length >> 8) & 0xFF;
+  header[3] = length & 0xFF;
+  
+  Serial.write(header, 4);
+  Serial.write(buffer, length);
+  
+  uint8_t footer[2] = {0xCC, 0xDD};
+  Serial.write(footer, 2);
+  Serial.flush();
+}
