@@ -2,7 +2,7 @@
 
 Autonomous, low-power underwater object detection—using state-of-the-art TinyML deep learning on affordable embedded hardware.
 
-## 🌊 Overview
+## Overview
 
 This repository documents a real-time, embedded system for identifying underwater threats (submarines, mines, UUVs) in maritime environments, leveraging:
 
@@ -11,7 +11,7 @@ This repository documents a real-time, embedded system for identifying underwate
 - YOLOv8 Nano model, quantized with INT8 and deployed via TensorFlow Lite Micro
 - Roboflow-curated dataset, with rich underwater augmentations
 
-## 📑 Table of Contents
+## Table of Contents
 
 - [Objectives](#-objectives)
 - [System Architecture](#-system-architecture)
@@ -23,14 +23,14 @@ This repository documents a real-time, embedded system for identifying underwate
 - [Project Team](#-project-team)
 - [References](#-references)
 
-## 🎯 Objectives
+## Objectives
 
 - Embed AI-powered submarine detection on resource-constrained edge hardware
 - Optimize for low-latency (<200ms), <1W power, and <$50 BOM costs
 - Architect robust, field-updateable systems with SD card model loading
 - Deliver validated detection accuracy (>87% TPR), with modular code and full reproducibility
 
-## 🧩 System Architecture
+## System Architecture
 
 ### Hardware
 
@@ -43,7 +43,7 @@ This repository documents a real-time, embedded system for identifying underwate
 - **Dev Phase**: WiFi MJPEG streaming from ESP32-CAM to Python/YOLO on laptop
 - **Edge Phase**: UART DMA transfer from ESP32-CAM → STM32H750 → TFLite Micro inference
 
-## 🗃️ Dataset & Augmentation
+## Dataset & Augmentation
 
 - **Sources**: Roboflow Universe, maritime surveillance, public and synthetic images
 - **Classes**: Submarine (single-class)
@@ -59,14 +59,14 @@ This repository documents a real-time, embedded system for identifying underwate
 
 All exported in YOLOv8 format (normalized bounding box txt).
 
-## 🏗️ Model Training & Deployment
+## Model Training & Deployment
 
 - YOLOv8n (Nano) trained for 150 epochs on Google Colab with AdamW/cosine annealing
 - INT8 quantization (FP32 → ONNX → TFLite int8), <2MB final model
 - Deployed with STM32Cube.AI for 70% latency reduction, fit into <1MB SRAM
 - SD card allows in-field model updates (model.tflite)
 
-## ⚙️ Implementation & Code Flow
+## Implementation & Code Flow
 
 - ESP32-CAM streams frames via MJPEG (WiFi) or UART (921600 baud); each frame has a header/signature
 - STM32 firmware (STM32CubeIDE):
@@ -76,14 +76,14 @@ All exported in YOLOv8 format (normalized bounding box txt).
   - Preprocessing, NN inference, NMS on detections
 - USB Serial telemetry to host for real-time alerting
 
-## 📊 Results & Benchmarks
+## Results & Benchmarks
 
 - **Accuracy**: mAP@0.5 = 0.91 (FP32), mAP@0.5 = 0.89 (INT8)
 - **Performance**: 2.3 FPS throughput, 80–150ms inference latency per frame (STM32H750)
 - **Power**: <1W total system consumption; battery-friendly
 - **Scalability**: Multi-node affordable deployment (<$50/unit)
 
-## 🚀 Future Work
+## Future Work
 
 - **Communication**: LoRa telemetry, SPI uplinks, mesh networking
 - **Preprocessing**: Optimized color correction (CLAHE, channel boosting)
@@ -91,14 +91,14 @@ All exported in YOLOv8 format (normalized bounding box txt).
 - **Hardware**: Multi-camera fusion, FPGA migration, environmental adaptation
 - **Logging & Security**: On-device event logging, encryption, federated learning for fleet improvement
 
-## 👨‍💻 Project Team
+## Project Team
 
 - Priyanshu Sil (ECE, MIT Manipal)
 - Steve Augustian (ECE, MIT Manipal)
 - Mayank Parashar (ECE, MIT Manipal)
 - Guide: Dr. Rahul Ratnakumar (Assistant Professor, ECE Dept.)
 
-## 📚 References
+## References
 
 See `Minor-Project-Report.pdf` for full technical background, diagrams, and citations.
 
