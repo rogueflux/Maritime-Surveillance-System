@@ -106,3 +106,10 @@ See `Minor-Project-Report.pdf` for full technical background, diagrams, and cita
 - Ultralytics YOLOv8 docs
 - STMicroelectronics & WeAct Studio datasheets
 - TensorFlow Lite Micro & STM32Cube.AI toolkit
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+***
+
